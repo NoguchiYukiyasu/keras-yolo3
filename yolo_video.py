@@ -62,11 +62,8 @@ if __name__ == '__main__':
     )
 
     FLAGS = parser.parse_args()
-
     if FLAGS.image:
-        """
-        Image detection mode, disregard any remaining command line arguments
-        """
+    #Image detection mode, disregard any remaining command line arguments
         print("Image detection mode")
         if "input" in FLAGS:
             print(" Ignoring remaining command line arguments: " + FLAGS.input + "," + FLAGS.output)
@@ -75,3 +72,4 @@ if __name__ == '__main__':
         detect_video(YOLO(**vars(FLAGS)), FLAGS.input, FLAGS.output)
     else:
         print("Must specify at least video_input_path.  See usage with --help.")
+    
