@@ -196,7 +196,7 @@ if __name__ == '__main__':
     '''
     parser.add_argument(
         '--annotations', type = str, default="train.txt",
-        help='path to model weight file')
+        help='path to annotations file')
 
     parser.add_argument(
         '--anchors', type=str, default = 'model_data/yolo_anchors.txt',
