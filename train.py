@@ -14,7 +14,7 @@ from yolo3.model import preprocess_true_boxes, yolo_body, tiny_yolo_body, yolo_l
 from yolo3.utils import get_random_data
 
 
-def _main(annotation_path, log_dir, classes_path, anchors_path):
+def _main(annotation_path, log_dir, classes_path, anchors_path, model_path):
     annotation_path = annotation_path
     log_dir = log_dir
     classes_path = classes_path
@@ -22,10 +22,11 @@ def _main(annotation_path, log_dir, classes_path, anchors_path):
     class_names = get_classes(classes_path)
     num_classes = len(class_names)
     anchors = get_anchors(anchors_path)
+    model_path = model_path
 
     #input_shape = (416,416) # multiple of 32, hw
     input_shape = (832,832) # multiple of 32, hw
-
+    """
     is_tiny_version = len(anchors)==6 # default setting
     if is_tiny_version:
         model = create_tiny_model(input_shape, anchors, num_classes,
@@ -33,7 +34,10 @@ def _main(annotation_path, log_dir, classes_path, anchors_path):
     else:
         model = create_model(input_shape, anchors, num_classes,
             freeze_body=2, weights_path='model_data/yolo_weights.h5') # make sure you know what you freeze
-
+    """
+    model = create_model(input_shape, anchors, num_classes,
+            freeze_body=2, weights_path=model_path) # make sure you know what you freeze
+    
     logging = TensorBoard(log_dir=log_dir)
     checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
         monitor='val_loss', save_weights_only=True, save_best_only=True, period=3)
@@ -205,6 +209,15 @@ if __name__ == '__main__':
     parser.add_argument(
         '--classes', type=str, default = 'model_data/voc_classes.txt',
         help='path to class definitions')
+
+    parser.add_argument(
+        '--model', type=str, default = "model_data/yolo_weights.h5",
+        help='path to model weight file')
+
+    parser.add_argument(
+        '--log', type=str, default = "logs/000/",
+        help='path to log folder')
+
     FLAGS = parser.parse_args()
     
-    _main(annotation_path = FLAGS.annotations, log_dir = 'logs/000/', classes_path = FLAGS.classes, anchors_path = FLAGS.anchors)
+    _main(annotation_path = FLAGS.annotations, log_dir = FLAGS.log, classes_path = FLAGS.classes, anchors_path = FLAGS.anchors, model_path = FLAGS.model)
