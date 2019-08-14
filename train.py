@@ -23,9 +23,13 @@ def _main(annotation_path, log_dir, classes_path, anchors_path, model_path):
     num_classes = len(class_names)
     anchors = get_anchors(anchors_path)
     model_path = model_path
+    input_shape = (416,416) # multiple of 32, hw
+    print("anno:",annotation_path)
+    print("class:",classes_path)
+    print("anchors:",anchors_path)
+    print("model:",model_path)
 
-    #input_shape = (416,416) # multiple of 32, hw
-    input_shape = (832,832) # multiple of 32, hw
+    #input_shape = (832,832) # multiple of 32, hw
     """
     is_tiny_version = len(anchors)==6 # default setting
     if is_tiny_version:
@@ -35,7 +39,12 @@ def _main(annotation_path, log_dir, classes_path, anchors_path, model_path):
         model = create_model(input_shape, anchors, num_classes,
             freeze_body=2, weights_path='model_data/yolo_weights.h5') # make sure you know what you freeze
     """
-    model = create_model(input_shape, anchors, num_classes,
+    is_tiny_version = len(anchors)==6 # default setting
+    if is_tiny_version:
+        model = create_tiny_model(input_shape, anchors, num_classes,
+            freeze_body=2, weights_path=model_path)
+    else:
+        model = create_model(input_shape, anchors, num_classes,
             freeze_body=2, weights_path=model_path) # make sure you know what you freeze
     
     logging = TensorBoard(log_dir=log_dir)
@@ -62,6 +71,8 @@ def _main(annotation_path, log_dir, classes_path, anchors_path, model_path):
 
         #batch_size = 32
         batch_size = 8
+        batch_size = 16
+        
         print('Train on {} samples, val on {} samples, with batch size {}.'.format(num_train, num_val, batch_size))
         model.fit_generator(data_generator_wrapper(lines[:num_train], batch_size, input_shape, anchors, num_classes),
                 steps_per_epoch=max(1, num_train//batch_size),

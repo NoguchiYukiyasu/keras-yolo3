@@ -23,11 +23,13 @@ class YOLO(object):
         "model_path": 'model_data/yolo.h5',
         "anchors_path": 'model_data/yolo_anchors.txt',
         "classes_path": 'model_data/voc_classes.txt',
-        "score" : 0.3,
+        "score" :0.01,#: 0.3,
         "iou" : 0.45,
         "model_image_size" : (416, 416),
         "gpu_num" : 1,
     }
+    # score: 
+    # iou: for non max suppresion
 
     @classmethod
     def get_defaults(cls, n):
@@ -48,14 +50,14 @@ class YOLO(object):
 
     def _get_class(self):
         classes_path = os.path.expanduser(self.classes_path)
-        with open(classes_path) as f:
+        with open(classes_path,encoding = 'utf-8') as f:
             class_names = f.readlines()
         class_names = [c.strip() for c in class_names]
         return class_names
 
     def _get_anchors(self):
         anchors_path = os.path.expanduser(self.anchors_path)
-        with open(anchors_path) as f:
+        with open(anchors_path,encoding = 'utf-8') as f:
             anchors = f.readline()
         anchors = [float(x) for x in anchors.split(',')]
         return np.array(anchors).reshape(-1, 2)

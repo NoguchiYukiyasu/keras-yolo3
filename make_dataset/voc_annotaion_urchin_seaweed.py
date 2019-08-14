@@ -1,17 +1,33 @@
 import xml.etree.ElementTree as ET
 from os import getcwd
+import os
+import glob
 
-sets=[('2007', 'train'), ('2007', 'val'), ('2007', 'test')]
+classes = ["urchin", "urchin_hatena", "seaweed","urchin_hatena2"]
+jpeg_xml_folder = "jpeg_xml_files"#"local_path"
+output_annotation_name = "annotations.txt"
+output_class_file_name = "class.txt"
 
-classes = ["urchin", "urchin_hatena", "seaweed"]
 
-
-def convert_annotation(year, image_id, list_file):
-    #print(open('VOCdevkit/VOC%s/Annotations/%s.xml'))
-    in_file = open('VOCdevkit/VOC%s/Annotations/%s.xml'%(year, image_id),encoding="utf-8_sig")
-    tree=ET.parse(in_file)
+wd = getcwd()
+list_file = open(output_annotation_name, 'w', encoding="utf-8_sig")
+buff_list = glob.glob("./"+jpeg_xml_folder+"/*")
+image_list = []
+no_xml_file_list = []
+for file_name in buff_list:
+    base, ext = os.path.splitext(file_name)
+    print(base)
+    if (ext == ".jpeg") or (ext == ".jpg") or (ext == ".JPEG") or (ext == ".JPG"):
+        image_list.append(file_name)
+for image_name in image_list:
+    if os.path.exists(os.path.splitext(image_name)[0]+".xml"):
+        in_file = open(os.path.splitext(image_name)[0]+".xml", encoding="utf-8_sig")
+    else:
+        no_xml_file_list.append(image_name)
+        continue
+    list_file.write(wd+"/"+image_name)
+    tree = ET.parse(in_file)
     root = tree.getroot()
-
     for obj in root.iter('object'):
         difficult = obj.find('difficult').text
         cls = obj.find('name').text
@@ -21,17 +37,11 @@ def convert_annotation(year, image_id, list_file):
         xmlbox = obj.find('bndbox')
         b = (int(xmlbox.find('xmin').text), int(xmlbox.find('ymin').text), int(xmlbox.find('xmax').text), int(xmlbox.find('ymax').text))
         list_file.write(" " + ",".join([str(a) for a in b]) + ',' + str(cls_id))
+    list_file.write('\n')
+print("No xml file:", no_xml_file_list)
+list_file.close()
 
-wd = getcwd()
-
-for year, image_set in sets:
-    image_ids = open('VOCdevkit/VOC%s/ImageSets/Main/%s.txt'%(year, image_set) ,encoding="utf-8_sig").read().strip().split()
-    #print(open('VOCdevkit/VOC%s/ImageSets/Main/%s.txt'%(year, image_set)).read()).strip().split()
-    list_file = open('%s_%s.txt'%(year, image_set), 'w',encoding="utf-8_sig")
-    for image_id in image_ids:
-        print(str((image_id)))
-        list_file.write('%s/VOCdevkit/VOC%s/JPEGImages/%s.jpg'%(wd, year, image_id))
-        convert_annotation(year, image_id, list_file)
-        list_file.write('\n')
-    list_file.close()
-
+class_file = open(output_class_file_name, 'w', encoding="utf-8_sig")
+for class_name in classes:
+    class_file.write(class_name+'\n')
+class_file.close()

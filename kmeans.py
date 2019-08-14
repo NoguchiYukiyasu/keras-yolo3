@@ -99,7 +99,7 @@ class YOLO_Kmeans:
 if __name__ == "__main__":
     args = sys.argv
     assert len(args) >= 2, "you must specify the argument."
-    cluster_number = 9
+    cluster_number = 6#9
     filename = args[1] # "2007_train.txt"
     kmeans = YOLO_Kmeans(cluster_number, filename)
     kmeans.txt2clusters()
