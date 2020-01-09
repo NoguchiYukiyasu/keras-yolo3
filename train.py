@@ -1,6 +1,7 @@
 """
 Retrain the YOLO model for your own dataset.
 """
+# get_random_data のrandom をfalseに変えた。
 
 import numpy as np
 import keras.backend as K
@@ -40,16 +41,17 @@ def _main(annotation_path, log_dir, classes_path, anchors_path, model_path):
             freeze_body=2, weights_path='model_data/yolo_weights.h5') # make sure you know what you freeze
     """
     is_tiny_version = len(anchors)==6 # default setting
+    freeze_which = 1 # or 2
     if is_tiny_version:
         model = create_tiny_model(input_shape, anchors, num_classes,
-            freeze_body=2, weights_path=model_path)
+            freeze_body=freeze_which, weights_path=model_path)
     else:
         model = create_model(input_shape, anchors, num_classes,
-            freeze_body=2, weights_path=model_path) # make sure you know what you freeze
+            freeze_body=freeze_which, weights_path=model_path) # make sure you know what you freeze
     
     logging = TensorBoard(log_dir=log_dir)
     checkpoint = ModelCheckpoint(log_dir + 'ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5',
-        monitor='val_loss', save_weights_only=True, save_best_only=True, period=3)
+        monitor='val_loss', save_weights_only=True, save_best_only=True, period=1)
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, verbose=1)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1)
 
@@ -97,8 +99,8 @@ def _main(annotation_path, log_dir, classes_path, anchors_path, model_path):
             steps_per_epoch=max(1, num_train//batch_size),
             validation_data=data_generator_wrapper(lines[num_train:], batch_size, input_shape, anchors, num_classes),
             validation_steps=max(1, num_val//batch_size),
-            epochs=100,
-            initial_epoch=50,
+            epochs=100,#100,
+            initial_epoch=50,#50,
             callbacks=[logging, checkpoint, reduce_lr, early_stopping])
         model.save_weights(log_dir + 'trained_weights_final.h5')
 
@@ -182,6 +184,7 @@ def create_tiny_model(input_shape, anchors, num_classes, load_pretrained=True, f
 
 def data_generator(annotation_lines, batch_size, input_shape, anchors, num_classes):
     '''data generator for fit_generator'''
+    random_generate = False # CHECK!
     n = len(annotation_lines)
     i = 0
     while True:
@@ -190,7 +193,7 @@ def data_generator(annotation_lines, batch_size, input_shape, anchors, num_class
         for b in range(batch_size):
             if i==0:
                 np.random.shuffle(annotation_lines)
-            image, box = get_random_data(annotation_lines[i], input_shape, random=True)
+            image, box = get_random_data(annotation_lines[i], input_shape, random=random_generate)
             image_data.append(image)
             box_data.append(box)
             i = (i+1) % n
@@ -209,6 +212,7 @@ if __name__ == '__main__':
     '''
     Command line options
     '''
+    """
     parser.add_argument(
         '--annotations', type = str, default="train.txt",
         help='path to annotations file')
@@ -224,6 +228,23 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model', type=str, default = "model_data/yolo_weights.h5",
         help='path to model weight file')
+    """
+
+    parser.add_argument(
+        '--annotations_path', type = str,
+        help='path to annotations file')
+
+    parser.add_argument(
+        '--anchors_path', type=str,
+        help='path to anchor definitions')
+
+    parser.add_argument(
+        '--classes_path', type=str,
+        help='path to class definitions')
+
+    parser.add_argument(
+        '--model_path', type=str,
+        help='path to model weight file')
 
     parser.add_argument(
         '--log', type=str, default = "logs/000/",
@@ -231,4 +252,4 @@ if __name__ == '__main__':
 
     FLAGS = parser.parse_args()
     
-    _main(annotation_path = FLAGS.annotations, log_dir = FLAGS.log, classes_path = FLAGS.classes, anchors_path = FLAGS.anchors, model_path = FLAGS.model)
+    _main(annotation_path = FLAGS.annotations_path, log_dir = FLAGS.log, classes_path = FLAGS.classes_path, anchors_path = FLAGS.anchors_path, model_path = FLAGS.model_path)

@@ -10,7 +10,7 @@ output_class_file_name = "class.txt"
 
 
 wd = getcwd()
-list_file = open(output_annotation_name, 'w', encoding="utf-8_sig")
+list_file = open(output_annotation_name, 'w', encoding="utf-8") # もともとutf-8_sigだった
 buff_list = glob.glob("./"+jpeg_xml_folder+"/*")
 image_list = []
 no_xml_file_list = []
@@ -41,7 +41,7 @@ for image_name in image_list:
 print("No xml file:", no_xml_file_list)
 list_file.close()
 
-class_file = open(output_class_file_name, 'w', encoding="utf-8_sig")
+class_file = open(output_class_file_name, 'w', encoding="utf-8") # もともとutf-8_sigだった
 for class_name in classes:
     class_file.write(class_name+'\n')
 class_file.close()
